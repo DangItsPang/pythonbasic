@@ -1,4 +1,4 @@
-# Example Package
+# Python Basic
 
 Type in Python, get TI-Basic back!
 
