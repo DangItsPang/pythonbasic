@@ -10,6 +10,7 @@
    :maxdepth: 2
    
    install
+   getting-started
 
 
 Indices and tables

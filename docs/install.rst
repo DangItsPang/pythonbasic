@@ -1,4 +1,4 @@
-**Installation**
+Installation
 ========================================
 
 Python Basic is installed via pip.
