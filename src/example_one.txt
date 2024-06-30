@@ -1,0 +1,4 @@
+Prompt A
+Prompt B
+A²+B²→C
+Disp √(C)
