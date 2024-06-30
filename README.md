@@ -163,5 +163,6 @@ Prompt S
 normalcdf(L,U,M,S)→P
 Disp P
 ```
-
-![The translated code running on a TI-84 Plus CE](./photos/example_three.png)
+| ![The translated code running on a TI-84 Plus CE](./photos/example_three.png)
+|:--:| 
+| *The translated code running on a TI-84 Plus CE* |
