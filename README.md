@@ -1,7 +1,9 @@
 # Python Basic
-*An easier way to write TI-Basic*
+*An easier way to write TI-Basic!*
 
-Python Basic aims to simplify the process of writing code for Texas Instruments calculators.
+**Python Basic aims to simplify the process of writing code for Texas Instruments calculators.**
+
+<a href="https://www.buymeacoffee.com/roniemartinez" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
 For example, consider this code written in TI-Basic:
 ```
