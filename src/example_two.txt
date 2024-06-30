@@ -1,0 +1,38 @@
+Lbl AG
+Menu("MAIN MENU","ADD",AB,"SUBTRACT",AC,"MULTIPLY",AD,"DIVIDE",AE,"QUIT",AF
+Lbl AB
+Prompt A
+Prompt B
+A+B→S
+Disp S
+Pause 
+ClrHome
+Goto AG
+Stop
+Lbl AC
+Prompt A
+Prompt B
+Disp A-B
+Pause 
+ClrHome
+Goto AG
+Stop
+Lbl AD
+Prompt A
+Prompt B
+Disp A*B
+Pause 
+ClrHome
+Goto AG
+Stop
+Lbl AE
+Prompt A
+Prompt B
+Disp A/B
+Pause 
+ClrHome
+Goto AG
+Stop
+Lbl AF
+Stop
+Stop
