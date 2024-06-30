@@ -3,7 +3,7 @@
 
 **Python Basic aims to simplify the process of writing code for Texas Instruments calculators.**
 
-<a href="https://www.buymeacoffee.com/roniemartinez" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+<a href="https://www.buymeacoffee.com/owengold" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-yellow.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
 For example, consider this code written in TI-Basic:
 ```
