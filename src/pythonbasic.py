@@ -32,6 +32,7 @@ COLOR_LIST = ["BLUE", "RED", "BLACK", "MAGENTA", "GREEN", "ORANGE", "NAVY", "LTB
 
 MARKS = Literal["▫", "•", "·"] #  "⁺" was giving me issues for some reason, sorry :(
 TAIL_DIRECTIONS = Literal["LEFT", "CENTER", "RIGHT", "BLANK"] # select blank if your model doesn't support tail direction
+ALTERNATIVES = Literal["NOT_EQUAL", "LESS", "GREATER"]
 
 FIXED_MARKS = {
     "Â·" : "·",
@@ -1285,22 +1286,70 @@ def max(value1,value2 = None):
         return f"max({remove_spaces(value1)},{remove_spaces(value2)})"
     
 def mean(list,frequency_list = None):
-     
+    '''The mean( command finds the mean, or the average, of a list. It's pretty elementary. It takes a list of real numbers as a parameter.'''
     if frequency_list is None:
         return f"mean({list})"
     else:
         return f"mean({list},{frequency_list})"
     
 def median(list,frequency_list = None):
-     
+    '''The median( command finds the median of a list. It takes a list of real numbers as a parameter.'''
     if frequency_list is None:
         return f"median({list})"
     else:
         return f"median({list},{frequency_list})"
+    
+def min(value1,value2 = None):
+    '''min(x,y) returns the smallest of the two numbers x and y. min(list) returns the smallest element of list. min(list1,list2) returns the pairwise minima of the two lists. min(list1,x) (equivalently, min(x,list1)) returns a list whose elements are the smaller of x or the corresponding element of the original list.'''
+    if value2 is None:
+        return f"min({remove_spaces(value1)})"
+    else:
+        return f"min({remove_spaces(value1)},{remove_spaces(value2)})"
+    
+def ncr(int1,int2):
+    '''nCr is the number of combinations function (or binomial coefficient), defined as a nCr b = a!/(b!*(a-b)!), where a and b are nonnegative integers. The function also works on lists.'''
+    return f"{int1} nCr {int2}"
+
+def nDeriv(function,var,value,h=.001):
+    '''nDeriv(f(var),var,value[,h]) computes an approximation to the value of the derivative of f(var) with respect to var at var=value. h is the step size used in the approximation of the derivative. The default value of h is 0.001.'''
+    return f"nDeriv({remove_spaces(function)},{var},{value},{h})"
+
+def normalcdf(lower,upper,mean=0,sd=1):
+    '''normalcdf( is the normal (Gaussian) cumulative density function. If some random variable follows a normal distribution, you can use this command to find the probability that this variable will fall in the interval you supply. There are two ways to use normalcdf(. With two arguments (lower bound and upper bound), the calculator will assume you mean the standard normal distribution, and use that to find the probability corresponding to the interval between "lower bound" and "upper bound". You can also supply two additional arguments to use the normal distribution with a specified mean and standard deviation.'''
+    return f"normalcdf({lower},{upper},{mean},{sd})"
+
+def normalpdf(x,mean=0,sd=1):
+    '''normalpdf( is the normal (Gaussian) probability density function. Since the normal distribution is continuous, the value of normalpdf( doesn't represent an actual probability - in fact, one of the only uses for this command is to draw a graph of the normal curve. You could also use it for various calculus purposes, such as finding inflection points. The command can be used in two ways: normalpdf(x) will evaluate the standard normal p.d.f. (with mean at 0 and a standard deviation of 1) at x, and normalpdf(x,μ,σ) will work for an arbitrary normal curve, with mean μ and standard deviation σ.'''
+    return f"normalpdf({x},{mean},{sd})"
 
 def Not(value):
     '''Flips the truth value of its argument.'''
     return f"not({value})"
+
+def npr(int1,int2):
+    '''nPr is the number of permutations function, defined as a nPr b = a!/(a-b)!, where a and b are nonnegative integers. The function also works on lists.'''
+    return f"{int1} nPr {int2}"
+
+def npv(interest_rate,cf0,cf_list,cf_freq=None):
+    '''The npv( command computes the net present value of money over a specified time period. If a positive value is returned after executing npv(, that means it was a positive cashflow; otherwise it was a negative cashflow. The npv( command takes four arguments, and the fourth one is optional:\n\ninterest rate — the percentage of the money that is paid for the use of that money over each individual period of time.\n\nCF0 — the initial amount of money that you start out with; this number must be a real number, otherwise you will get a ERR:DATA TYPE error.\n\nCFList — the list of cash flows added or subtracted after the initial money.\n\nCFFreq — the list of frequencies of each cash flow added after the initial money; if this is left off, each cash flow in the cash flow list will just appear once by default.'''
+    if cf_freq is None:
+        return f"npv({interest_rate},{cf0},{cf_list})"
+    else:
+        return f"npv({interest_rate},{cf0},{cf_list},{cf_freq})"
+
+def OnePropZInt(x,n,c_level):
+    '''The 1-PropZInt( command calculates a confidence interval for a proportion, at a specific confidence level: for example, if the confidence level is 95%, you are 95% certain that the proportion lies within the interval you get. The command assumes that the sample is large enough that the normal approximation to binomial distributions is valid: this is true if, in the sample you take, the positive and negative counts are both >5. The 1-PropZInt( command takes 3 arguments. The first, x, is the positive count in the sample. The second, n, is the total size of the sample. (So the sample proportion is equal to x out of n). The third argument is the confidence level, which defaults to 95. The output gives you a confidence interval of the form (a,b), meaning that the true proportion π is most likely in the range a<π<b, and the value of x/n.'''
+    return f"1-PropZInt({x},{n},{c_level})"
+
+def OnePropZTest(null,x,n,prop: ALTERNATIVES = "NOT_EQUAL",draw=0):
+    '''1-PropZTest performs an z-test to compare a population proportion to a hypothesis value. This test is valid for sufficiently large samples: only when the number of successes (x in the command syntax) and the number of failures (n-x) are both >5.\n\nThe logic behind the test is as follows: we want to test the hypothesis that the true proportion is equal to some value p0 (the null hypothesis). To do this, we assume that this "null hypothesis" is true, and calculate the probability that the (usually, somewhat different) actual proportion occurred, under this assumption. If this probability is sufficiently low (usually, 5% is the cutoff point), we conclude that since it's so unlikely that the data could have occurred under the null hypothesis, the null hypothesis must be false, and therefore the true proportion is not equal to p0. If, on the other hand, the probability is not too low, we conclude that the data may well have occurred under the null hypothesis, and therefore there's no reason to reject it.\n\nCommonly used notation has the letter π being used for the true population proportion (making the null hypothesis be π=p0). TI must have been afraid that this would be confused with the real number π, so on the calculator, "prop" is used everywhere instead.\n\nIn addition to the null hypothesis, we must have an alternative hypothesis as well - usually this is simply that the proportion is not equal to p0. However, in certain cases, our alternative hypothesis may be that the proportion is greater or less than p0.\n\n\nThe arguments to 1-PropZTest( are as follows:\n\np0 - the value for the null hypothesis (the proportion you're testing for)\n\nx - the success count in the sample\n\nn - the total size of the sample (so the sample proportion would be x/n)\n\nalternative (optional if you don't include draw?) - determines the alternative hypothesis\n\n0 (default value) - prop≠p0\n\n-1 (or any negative value) - prop<p0\n\n1 (or any positive value) - prop>p0\n\ndraw? (optional) set this to 1 if you want a graphical rather than numeric result'''
+
+    alternative = 0
+    if prop == "NOT_EQUAL": alternative = 0
+    if prop == "LESS": alternative = -1
+    if prop == "GREATER": alternative = 1
+
+    return f"1-PropZTest({null},{x},{n},{alternative},{draw})"
 
 def OpenLib(library):
 	'''Sets up a compatible Flash application library for use with ExecLib'''
@@ -1318,9 +1367,28 @@ def poissonpdf(mean,value):
 	'''Calculates the Poisson probability for a single value'''
 	return f"poissonpdf({mean},{value})"
 
+def prod(list,start=-1,end=-1):
+    '''The prod( command calculates the product of all or part of a list. When you use it with only one argument, the list, it multiplies all the elements of the list. You can also give it a bound of start and end and it will only multiply the elements starting and ending at those indices (inclusive).'''
+    if start == -1 and end == -1:
+        return f"prod({list})"
+    elif start != -1 and end != -1:
+        return f"prod({list},{start},{end})"
+    elif start != -1 and end == -1:
+        return f"prod({list},{start})"
+    else:
+        return f"prod({list})"
+
 def PtChange(X,Y):
 	'''Toggles a point on the graph screen.'''
 	return f"Pt-Change({X},{Y})"
+
+def Pt_Off(x,y):
+    '''The Pt-Off( command is used to turn off a point (a pixel on the screen) on the graph screen at the given (X,Y) coordinates. Pt-Off( is affected by the window settings, which means you have to change the window settings accordingly, otherwise the point won't show up correctly on the screen.'''
+    return f"Pt-Off({x},{y})"
+
+def Pt_On(x,y):
+    '''The Pt-On( command is used to draw a point on the graph screen at the given (X,Y) coordinates. Pt-On( is affected by the window settings Xmin, Xmax, Ymin, and Ymax. Make sure to change these accordingly when using it in a program, otherwise, you don't know where the point will show up.'''
+    return f"Pt-On({x},{y})"
 
 def PxlChange(row,column):
 	'''Toggles a pixel on the graph screen.'''
@@ -1342,13 +1410,31 @@ def randBin(n,p,simulations):
 	'''Generates a random number with the binomial distribution.'''
 	return f"randBin({n},{p},{simulations})"
 
+def randInt(lower,upper,amount=-1):
+    '''randInt(min,max) generates a uniformly-distributed pseudorandom integer between min and max inclusive. randInt(min,max,n) generates a list of n uniformly-distributed pseudorandom integers between min and max.'''
+    if amount == -1:
+        return f"randInt({lower},{upper})"
+    else:
+        return f"randInt({lower},{upper},{amount})"
+
 def randM(rows,columns):
 	'''Creates a matrix of specified size with the entries random integers from -9 to 9.'''
 	return f"randM({rows},{columns})"
 
+def randNorm(mean,sd,amount):
+    '''randNorm(µ,σ) generates a normally-distributed pseudorandom number with mean µ and standard deviation σ. The result returned will most probably be within the range µ±3σ. randNorm(µ,σ,n) generates a list of n normally-distributed pseudorandom numbers with mean µ and standard deviation σ.'''
+    if amount == -1:
+        return f"randInt({mean},{sd})"
+    else:
+        return f"randInt({mean},{sd},{amount})"
+
 def ref(matrix):
 	'''Puts a matrix into row-echelon form.'''
 	return f"ref({matrix})"
+
+def Repeat(condition):
+    '''A Repeat loop executes a block of commands between the Repeat and End commands until the specified condition is true. The condition is tested at the end of the loop (when the End command is encountered), so the loop will always be executed at least once. This means that you sometimes don't have to declare or initialize the variables in the condition before the loop. After each time the Repeat loop is executed, the condition is checked to see if it is true. If it is true, then the loop is exited and program execution continues after the End command. If the condition is false, the loop is executed again.\n\n NOTE: After you've written all the lines to be contained in the repeat loop, make sure to end the loop with the End() command!'''
+    return f"Repeat {remove_spaces(condition)}"
 
 def rowSwap(matrix,row1,row2):
 	'''Swaps two rows of a matrix.'''
@@ -1394,6 +1480,21 @@ def sinh(value):
 	'''Calculates the hyperbolic sine of a value.'''
 	return f"sinh({value})"
 
+def SortA(list):
+    '''The SortA( command sorts a list in ascending order. It does not return it, but instead edits the original list variable (so it takes only list variables as arguments).'''
+    return f"SortA({list})"
+
+def SortD(list):
+    '''The SortD( command sorts a list in descending order. It does not return it, but instead edits the original list variable (so it takes only list variables as arguments).'''
+    return f"SortD({list})"
+
+def stdDev(list,frequency_list = None):
+    '''The stdDev( command finds the sample standard deviation of a list, a measure of the spread of a distribution. It takes a list of real numbers as a parameter.'''
+    if(frequency_list is None):
+        return f"stdDev({list})"
+    else:
+        return f"stdDev({list},{frequency_list})"
+        
 def sub(string,start,length):
 	'''Returns a specific part of a given string, or divides by 100.'''
 	return f"sub({string},{start},{length})"

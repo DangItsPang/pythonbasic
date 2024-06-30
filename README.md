@@ -3,7 +3,7 @@
 
 Python Basic aims to simplify the process of writing code for Texas Instruments calculators.
 
-For example, consider this code written in Basic:
+For example, consider this code written in TI-Basic:
 ```
 Prompt A
 Prompt B
@@ -31,12 +31,12 @@ TI-Basic:
 * Doesn't intent any lines
 * Can often use confusing syntax
 
-That's what *Python Basic* is for! Python Basic is written in a standard code editor, such as Visual Studio Code. Because you're in a standard text editor, you can more easily write and understand your code, and the module will convert everything to TI-Basic and output a text file. From there, you copy and paste the TI-Basic into the [TI Connect](https://education.ti.com/en/products/computer-software/ti-connect-sw)/[TI Connect CE](https://education.ti.com/en/products/computer-software/ti-connect-ce-sw) app, and send it to your calculator.
+That's what *Python Basic* is for! Python Basic is written in a standard code editor, such as Visual Studio Code. Because you're in a standard text editor, you can more easily write and understand your code, and the module will convert everything to TI-Basic and output a text file. From there, you copy and paste the TI-Basic into the [TI Connect](https://education.ti.com/en/products/computer-software/ti-connect-sw) or [TI Connect CE](https://education.ti.com/en/products/computer-software/ti-connect-ce-sw) app and send it to your calculator.
 
 ## Here's a more complex example
 Let's say you want a TI-Basic program that has a main menu. From there, the user can select one of five options: add, subtract, multiply, divide, or quit. If the user selects quit, the program ends. If they select any of the other options, it will prompt the user for two numbers and then perform that operation on them, returning the result.
 
-### Here's what that looks like in *Python Basic*
+### Here's what that looks like in *Python Basic*:
 ```python
 import pythonbasic as pb
 
@@ -123,3 +123,45 @@ Stop
 **Which looks easier to read and understand?** Definitely not the latter.
 
 This is the point of Python Basic: *to make this often confusing language much, much more accessible.*
+
+## One final example
+This one's for the fellow nerds who took a statistics class in school.
+
+Say you want to find the probability of getting a number within a certain interval. If your distribution of numbers is normal, you can use normalcdf to find this probability. And yes, *Python Basic* supports normalcdf, too.
+
+### In *Python Basic*:
+```python
+import pythonbasic as pb
+
+def normal_probability():
+    pb.clrHome()
+    pb.disp("Lower bound?")
+    pb.Prompt(L)
+    pb.disp("Upper bound?")
+    pb.Prompt(U)
+    pb.disp("Mean?")
+    pb.Prompt(M)
+    pb.disp("Standard deviation?")
+    pb.Prompt(S)
+    P = pb.normalcdf(L, U, M, S)
+    pb.disp(P)
+
+pb.setup(globals(), __file__, normal_probability)
+```
+
+### Translation in TI-Basic:
+```
+ClrHome
+Disp "Lower bound?"
+Prompt L
+Disp "Upper bound?"
+Prompt U
+Disp "Mean?"
+Prompt M
+Disp "Standard deviation?"
+Prompt S
+normalcdf(L,U,M,S)→P
+Disp P
+```
+
+![The translated code running on a TI-84 Plus CE](./photos/example_three.png)

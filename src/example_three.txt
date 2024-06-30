@@ -1,0 +1,11 @@
+ClrHome
+Disp "Lower bound?"
+Prompt L
+Disp "Upper bound?"
+Prompt U
+Disp "Mean?"
+Prompt M
+Disp "Standard deviation?"
+Prompt S
+normalcdf(L,U,M,S)→P
+Disp P
