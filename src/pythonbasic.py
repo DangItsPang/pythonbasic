@@ -20,6 +20,20 @@ indentations = {} # the indentation (leading whitespace) of each line in the chi
 pb_import_name = "" # whatever this module is referred to in the child script 
 math_import_name = "" # whatver the math module is referred to in the child script
 
+# The str class is used as the way of manipulating strings in Basic
+class Str():
+    name = "" # can be Str[0-9]
+    value = "" # whatever the string's value is
+
+    def __init__(self, name):
+        self.name = name
+
+    def set(self, value):
+        self.value = value
+
+    def get(self):
+        return self.value
+
 SETUP_OPTIONS = Literal["FUNCTION", "MENU"]
 
 '''Some useful literals'''
@@ -47,6 +61,17 @@ L4 = "L₄"
 L5 = "L₅"
 L6 = "L₆"
 
+STR1 = Str("Str1")
+STR2 = Str("Str2")
+STR3 = Str("Str3")
+STR4 = Str("Str4")
+STR5 = Str("Str5")
+STR6 = Str("Str6")
+STR7 = Str("Str7")
+STR8 = Str("Str8")
+STR9 = Str("Str9")
+STR0 = Str("Str0")
+
 X = "X"
 Y = "Y"
 Z = "Z"
@@ -57,16 +82,15 @@ i = ""
 
 '''End of literals'''
 
-# These two lines are used to help translate if/while statements
+# These lines are used to help translate if/while statements
 in_indented_block = False
-statement_indentation = 0
+statement_indentations = []
 
 ti_basic = ""
 
 screen_width = 24 # usually 16 or 24 - how many characters can fit horizontally across the screen
 labels = [] # a dictionary list with info on every label in the program
 all_menus = []
-
 
 class Menu():
     title = "" # what is displayed to the user
@@ -200,7 +224,7 @@ class TranslationObject():
     def get_old_content_start_index(self):
         return self.old_content_start_index
     
-    
+
 
 def generateLabel(): # goes from AB to ZZ, over 600 combinations 
     global global_label
@@ -411,6 +435,7 @@ def identify_line(line):
     # Define the dictionary that will be returned with the line identification
     line_values = {
         "empty_line" : False,
+        "string_object" : False,
         "pb_function" : False,
         "math_module" : False,
         "variable_set" : False,
@@ -423,22 +448,27 @@ def identify_line(line):
         line_values["empty_line"] = True
         return line_values
 
-    # 2. Check if the line calls a function from this module
+    # 2. Check if the line uses a string object
+    pb_string_regex = f"{pb_import_name}\.STR\d"
+    if(re.search(pb_string_regex, line)):
+        line_values["string_object"] = True
+
+    # 3. Check if the line calls a function from this module
     pb_function_regex = f"{pb_import_name}\."
     if(re.search(pb_function_regex, line)):
         line_values["pb_function"] = True
     
-    # 3. Check if the line uses the math module
+    # 4. Check if the line uses the math module
     math_regex = rf"{math_import_name}\."
     if(re.search(math_regex, line)):
         line_values["math_module"] = True
 
-    # 4. Check if the line sets the value of a variable (i.e., x = 4)
+    # 5. Check if the line sets the value of a variable (i.e., x = 4)
     variable_set_regex = r"([\w\d]+)\s*(?!==)(?:(?:=|\+=|-=|\/=))\s*(.*)"
     if (re.search(variable_set_regex, line)):
         line_values["variable_set"] = True
 
-    # 5. Check if the line initializes an if statement or a for/while loop
+    # 6. Check if the line initializes an if statement or a for/while loop
     if_for_while_regex = r"^(?:(?:if)|(?:while))"
     if(re.search(if_for_while_regex, line)):
         line_values["if_for_while"] = True
@@ -502,7 +532,7 @@ def translate_pb_function(line):
     then returns the line with the translation applied
     '''
 
-    pb_function_identifier = f"{pb_import_name}\.(.*?)\("
+    pb_function_identifier = f"(?:{pb_import_name}\.([\w\d]*?)\()"
     re_result = re.search(pb_function_identifier, line)
     if(re_result):
         # Identify the function name (Output, Prompt, normalCdf, etc)
@@ -565,11 +595,39 @@ def translate_pb_function(line):
 
         return line
 
+def translate_pb_string(line):
+    '''
+    Translates string objects (STR[0-9]) into calculator commands
+    '''
+    global pb_import_name
+
+    string_set_regex = f"{pb_import_name}\.STR(\d)\.set\((.*)\)"
+    re_result = re.search(string_set_regex, line)
+    if re_result:
+        # STR.set is used
+        match = re_result.group()
+        groups = re_result.groups()
+
+        line = line.replace(match, f"{remove_spaces(f"{groups[1]}→Str{groups[0]}")}")
+        print(f"RETURNING LINE {line}")
+        return line
+    
+    string_get_regex = f"{pb_import_name}\.STR(\d)\.get\(\)"
+    re_result = re.search(string_get_regex, line)
+    if re_result:
+        # STR.get is used
+        match = re_result.group()
+        groups = re_result.groups()
+
+        line = line.replace(match, f"Str{groups[0]}")
+        return line
+    
+
 def translate_one_function(function):
     '''
     Used when the user only wants to translate one function instead of a menu structure
     '''
-    global in_indented_block, statement_indentation, indentations, file_lines
+    global in_indented_block, statement_indentations, indentations, file_lines
 
     translated_lines = []
     current_index = 1 # to skip the line beginning with "def xxx():"
@@ -592,14 +650,18 @@ def translate_one_function(function):
 
         #print(f"line: {current_line}, index: {line_index}")
         # Check if this line is part of an indented segment. If not, append the End statement
-        if in_indented_block and line_indentation <= statement_indentation:
+        if in_indented_block and line_indentation <= statement_indentations[-1] and current_line:
             if(current_line == "else:"):
                 translated_lines.append("Else")
                 current_index += 1
                 continue
             else:
-                in_indented_block = False
+                statement_indentations.pop()
                 translated_lines.append("End")
+
+                if not statement_indentations:
+                    # if there are no more indented blocks that we are within, reset the boolean
+                    in_indented_block = False
 
         translated_line = translateLine(current_line, line_index)
         translated_lines.append(translated_line)
@@ -615,7 +677,7 @@ def translate_option_code(option):
     '''
     Accepts a menuOption passed from setup(), and returns a translated list of strings
     '''
-    global in_indented_block, statement_indentation, indentations, file_lines
+    global in_indented_block, statement_indentations, indentations, file_lines
 
     translated_option_code = [] # the translated list of strings to be returned
 
@@ -639,14 +701,18 @@ def translate_option_code(option):
 
         #print(f"line: {current_line}, index: {line_index}")
         # Check if this line is part of an indented segment. If not, append the End statement
-        if in_indented_block and line_indentation <= statement_indentation:
+        if in_indented_block and line_indentation <= statement_indentations[-1]:
             if(current_line == "else:"):
                 translated_option_code.append("Else")
                 current_index += 1
                 continue
             else:
-                in_indented_block = False
+                statement_indentations.pop()
                 translated_option_code.append("End")
+
+                if not statement_indentations:
+                    # if there are no more indented blocks that we are within, reset the boolean
+                    in_indented_block = False
 
         translated_line = translateLine(current_line, line_index)
         translated_option_code.append(translated_line)
@@ -665,20 +731,17 @@ def remove_spaces(input):
     input = str(input)
 
     new_string_chars = []
-    index = 0
     in_quotes = False
-    opening_quote = "" # either ' or "
 
+    index = 0
     while index < len(input):
         char = input[index]
 
-        if char == "'" or char == '"':
+        if char == '"':
             if not in_quotes:
-                opening_quote = char
                 in_quotes = True
             else:
-                if char == opening_quote:
-                    in_quotes = False
+                in_quotes = False
         
         if char != " " or in_quotes:
             new_string_chars.append(char)
@@ -719,7 +782,7 @@ def translate_if_while(line):
         return f"While {translated_condition}"
 
 def translateLine(line, line_index): # actually not so bad anymore
-    global pb_import_name, in_indented_block, statement_indentation, indentations
+    global pb_import_name, in_indented_block, statement_indentations, indentations
 
     # 1. Before translating, we call identify_line() to get an overview of the line
     line_info = identify_line(line)
@@ -733,6 +796,9 @@ def translateLine(line, line_index): # actually not so bad anymore
     if line_info["empty_line"]:
         return ""
     
+    if line_info["string_object"]:
+        line = translate_pb_string(line)
+
         # 2(b): If the line contains a PB function, translate_pb_function is called
     if line_info["pb_function"]:
         line = translate_pb_function(line)
@@ -749,8 +815,9 @@ def translateLine(line, line_index): # actually not so bad anymore
     if line_info["if_for_while"]:
         # Declare that we're now in an indented code block
         in_indented_block = True
-        statement_indentation = indentations[line_index]
-        print(f"Line: {line}\tIndent: {statement_indentation}")
+        statement_indentations.append(indentations[line_index])
+        #statement_indentation = indentations[line_index]
+        print(f"Line: {line}\tIndent: {statement_indentations[-1]}")
 
         return translate_if_while(line)
         
@@ -919,18 +986,6 @@ def Stop():
 def End():
     return "End"
 
-def translation_start():
-    '''
-    Used for translating python into basic without creating a menu structure
-    Call this function before all of your code that is to be converted
-    '''
-
-def translation_end():
-    '''
-    Used for translating python into basic without creating a menu structure
-    Call this function after all of your code that is to be converted
-    '''
-
 def read_file_lines(filename):
   '''
   Reads a Python file and returns a dictionary mapping line numbers to indentation levels.
@@ -1033,6 +1088,7 @@ def setup(child_globals, filename, chosen_function = None): # Called from child 
     # 4. Check translated lines for negative numbers and fix them
     split_ti_basic = []
     for line in ti_basic.splitlines():
+        line = line.replace("âˆŸ", "⌊").replace("âŒŠ", "⌊").replace("â†’", "→")
         split_ti_basic.append(fix_negatives(line))
     ti_basic = "\n".join(split_ti_basic)
 
@@ -1518,6 +1574,10 @@ def tcdf(lower,upper,ν):
 def timeCnv(value):
 	'''Converts seconds into the equivalent days, hours, minutes, and seconds.'''
 	return f"timeCnv({value})"
+
+def toString(input):
+    '''The toString( command, given any value including real numbers, complex numbers, lists, or matrices, returns the string representation of the value of the input.'''
+    return f"toString({input})"
 
 def tpdf(t,ν):
 	'''Evaluates the Student's t probability density function with degrees of freedom ν.'''

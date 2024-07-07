@@ -1,0 +1,19 @@
+Disp "Integer?"
+Prompt N
+
+
+If N<0
+Then
+1→I
+While I<abs(N
+N/I→D
+If notfPart(D
+Then
+
+D∟FACTOR(1+dim(âˆŸFACTOR))
+I∟FACTOR(1+dim(âˆŸFACTOR))
+End
+I+1→I
+
+Disp âˆŸF
+Disp ACTOR
