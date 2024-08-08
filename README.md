@@ -47,31 +47,31 @@ def main_menu_function(option):
         pb.Prompt(A)
         pb.Prompt(B)
         S = A + B
-        pb.disp(S)
-        pb.pause()
-        pb.clrHome()
-        pb.goToMenu(main_menu)
+        pb.Disp(S)
+        pb.Pause()
+        pb.ClrHome()
+        pb.goto_menu(main_menu)
     if option == "Subtract":
         pb.Prompt(A)
         pb.Prompt(B)
-        pb.disp(A - B)
-        pb.pause()
-        pb.clrHome()
-        pb.goToMenu(main_menu)
+        pb.Disp(A - B)
+        pb.Pause()
+        pb.ClrHome()
+        pb.goto_menu(main_menu)
     if option == "Multiply":
         pb.Prompt(A)
         pb.Prompt(B)
-        pb.disp(A * B)
-        pb.pause()
-        pb.clrHome()
-        pb.goToMenu(main_menu)
+        pb.Disp(A * B)
+        pb.Pause()
+        pb.ClrHome()
+        pb.goto_menu(main_menu)
     if option == "Divide":
         pb.Prompt(A)
         pb.Prompt(B)
-        pb.disp(A / B)
-        pb.pause()
-        pb.clrHome()
-        pb.goToMenu(main_menu)
+        pb.Disp(A / B)
+        pb.Pause()
+        pb.ClrHome()
+        pb.goto_menu(main_menu)
     if option == "Quit":
         pb.Stop()
 
@@ -126,7 +126,7 @@ Stop
 
 This is the point of Python Basic: *to make this often confusing language much, much more accessible.*
 
-## One final example
+## Statistics Support
 This one's for the fellow nerds who took a statistics class in school.
 
 Say you want to find the probability of getting a number within a certain interval. If your distribution of numbers is normal, you can use normalcdf to find this probability. And yes, *Python Basic* supports normalcdf, too.
@@ -136,17 +136,17 @@ Say you want to find the probability of getting a number within a certain interv
 import pythonbasic as pb
 
 def normal_probability():
-    pb.clrHome()
-    pb.disp("Lower bound?")
+    pb.ClrHome()
+    pb.Disp("Lower bound?")
     pb.Prompt(L)
-    pb.disp("Upper bound?")
+    pb.Disp("Upper bound?")
     pb.Prompt(U)
-    pb.disp("Mean?")
+    pb.Disp("Mean?")
     pb.Prompt(M)
-    pb.disp("Standard deviation?")
+    pb.Disp("Standard deviation?")
     pb.Prompt(S)
     P = pb.normalcdf(L, U, M, S)
-    pb.disp(P)
+    pb.Disp(P)
 
 pb.setup(globals(), __file__, normal_probability)
 ```
@@ -168,3 +168,142 @@ Disp P
 | ![The translated code running on a TI-84 Plus CE](./photos/example_three.png)
 |:--:| 
 | *The translated code running on a TI-84 Plus CE* |
+
+## Last example!
+Given an integer, this program will find all of its postive and negative factoring pairs. It will then display all of them in a polished page format, as shown in the image below.
+
+This also showcases Python Basic's ability to support lists, allowing you to easily manage them within your programs.
+
+```python
+import pythonbasic as pb
+
+factors = pb.List("FTR", "{0}")
+
+N = 0
+def get_factors():
+    
+    pb.Disp("Integer?")
+    pb.Prompt(N)
+
+    I = 1
+    while I < pb.abs(N)/2:
+        R = N/I
+
+        if factors.contains_number(R):
+            I = pb.abs(N)
+
+        if pb.fPart(R) == 0 and pb.Not(factors.contains_number(R)):
+            factors.append(R)
+            factors.append(I)
+            factors.append(R*-1)
+            factors.append(I*-1)
+        
+        I += 1
+
+    pb.ClrHome()
+    factors.remove_index(1)
+
+    M = pb.dim(factors.get_list())
+    I = 1
+
+    # P represents the "page" of factors being displayed to the user. Each page holds 32 factors, in 16 pairs of 2.
+    # U represents the final page of factors. If we have 70 factors, U will be 2, as pages 0 and 1 will be filled
+    # with the first 64 factors, and the remaining 6 will be on page 2.
+    P = 0
+    U = M/32
+    if pb.fPart(U) == 0:
+        U -= 1
+    U = pb.floor(U)
+
+    pb.Lbl("AA")
+    pb.ClrHome()
+
+    pb.Output(1, 1, "FACTORS OF")
+    pb.Output(1, 12, N)
+    pb.Output(10, 1, "ENTER TO CLOSE")
+    if M > 32:
+        if P != 0:
+            pb.Output(1, 22, "PRV ^")
+        if P != U:
+            pb.Output(10, 22, "NXT v")
+
+    if P < 0:
+        P = 0
+    if M < U:
+        P = U
+    
+    I = P*32+1
+    R = 2
+
+    if M-I > 32:
+        # This means more than 32 factors are still left to be displayed, so we will put 32 onto this page
+        while I < P*32+32:
+            # Display this page of factors
+            pb.Output(R,1,"("+pb.toString(factors.get_index(I))+", "+pb.toString(factors.get_index(I+1))+")")
+            I += 2
+
+            if M-I >= 1:
+                pb.Output(R,14,"("+pb.toString(factors.get_index(I))+", "+pb.toString(factors.get_index(I+1))+")")
+                I += 2
+                R += 1
+            
+        K = 0   
+        while K == 0:
+            Q = pb.getKey()
+            if Q == 25 and P != 0:
+                # 25 corresponds to the up arrow key
+                P -= 1
+                K = Q
+                pb.goto_label("AA")
+            if Q == 34 and P != U:
+                # down arrow pressed
+                P += 1
+                K = Q
+                pb.goto_label("AA")
+            if Q == 105:
+                # enter key pressed
+                K = Q
+                pb.ClrHome()
+                pb.Stop()
+    else:
+        while I < M:
+            pb.Output(R,1,"("+pb.toString(factors.get_index(I))+", "+pb.toString(factors.get_index(I+1))+")")
+            I += 2
+
+            if M - I >= 1:
+                pb.Output(R,14,"("+pb.toString(factors.get_index(I))+", "+pb.toString(factors.get_index(I+1))+")")
+                I += 2
+                R += 1
+        
+        if P != 0:
+            K = 0   
+            while K == 0:
+                Q = pb.getKey()
+                if Q == 25 and P != 0:
+                    # 25 corresponds to the up arrow key
+                    P -= 1
+                    K = Q
+                    pb.goto_label("AA")
+                if Q == 34 and P != U:
+                    # down arrow pressed
+                    P += 1
+                    K = Q
+                    pb.goto_label("AA")
+                if Q == 105:
+                    # enter key pressed
+                    K = Q
+                    pb.ClrHome()
+                    pb.Stop()
+            
+        pb.Pause()
+        pb.ClrHome()
+        pb.Stop()
+
+pb.setup(globals(), __file__, get_factors)
+```
+
+Say we run the program and specific -300 as our integer. Here's the list of factors returned to us.
+
+| ![The first page of the factors for -300](./photos/example_four(1).png) | ![The second page of the factors for -300](./photos/example_four(2).png)
+|:--:|:--:|
+| *The first page of the factors for -300* | *The second page of the factors for -300* |
