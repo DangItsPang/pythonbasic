@@ -31,8 +31,82 @@ class Str():
     def set(self, value):
         self.value = value
 
-    def get(self):
+    def get_string(self):
         return self.value
+
+# A dictionary to store all the custom lists of the user (this DOESN'T include L1-L6, which are built-in)
+user_created_lists = []
+
+class List():
+    global user_created_lists, pb_import_name
+
+    name = "" # either L₁-L₆ or a custom name
+    object_name = "" # whatever the variable name is of this list when it is declared
+
+    def __init__(self, name, value = None):
+        stack_info = inspect.getframeinfo(inspect.stack()[1][0])
+
+        calling_line = stack_info.code_context
+        calling_script = stack_info.filename
+
+        print(f"calling line: {calling_line}")
+        print(f"calling_script: {calling_script}")
+
+        if calling_script == __file__:
+            # The list is being created from this module, i.e., it's L1-L6
+            object_name_regex = rf"(\w+)\s*=\s*List\("
+        else:
+            # The list is being created from the child module
+            object_name_regex = rf"(\w+)\s*=\s*\w+\.List\("
+        re_result = re.search(object_name_regex, calling_line[0])
+        if(re_result):
+            self.object_name = re_result.groups()[0]
+            user_created_lists.append(self)
+
+        self.name = name
+
+        if not value is None:
+            # This means a default value for the list has been provided
+            # The list will be set to this value at the beginning of the program
+            basic_append(f"{value}→⌊{self.get_name()}")
+        user_created_lists.append(self)
+
+    def contains_number(self, number):
+        '''Checks if the list contains the specified number. This command only works with lists of numbers.'''
+        return f"max(not(⌊{self.get_name()}-{number}))"
+
+    def get_list(self):
+        return f"⌊{self.get_name()}"
+
+    def get_object_name(self):
+        return self.object_name
+    
+    def get_name(self):
+        return self.name
+
+    def set_list(self, value):
+        '''Sets the entire list equal to value'''
+        return f"{value}→⌊{self.get_name()}"
+
+    def set_index(self, index, item):
+        '''Sets the specified index in the list to be equal to the item specified'''
+        self.value[index] = item
+    
+    def append(self, item):
+        '''Appends the given item to the end of the list'''
+        return f"{item}→⌊{self.get_name()}(1+dim(⌊{self.get_name()}))"
+
+    def pop(self):
+        '''Removes the last item from the list'''
+        return f"⌊{self.get_name()}(X),X,1,dim(⌊{self.get_name()})-1)"
+    
+    def get_index(self, index):
+        '''Returns the list item at the specificed index. Note that in TI-Basic, lists start at index 1, NOT 0.'''
+        return f"⌊{self.get_name()}({index})"
+
+    def remove_index(self, index):
+        '''Removes the list item at the specificed index, shifting every indice after it down by one. The new list is returned. Note that in TI-Basic, lists start at index 1, NOT 0.'''
+        return f"seq(⌊{self.get_name()}(X+(X≥{index})),X,1,dim(⌊{self.get_name()})+-1)→⌊{self.get_name()}"
 
 SETUP_OPTIONS = Literal["FUNCTION", "MENU"]
 
@@ -54,12 +128,12 @@ FIXED_MARKS = {
     "â–«" : "▫",
 }
 
-L1 = "L₁"
-L2 = "L₂"
-L3 = "L₃"
-L4 = "L₄"
-L5 = "L₅"
-L6 = "L₆"
+L1 = List("L₁")
+L2 = List("L₂")
+L3 = List("L₃")
+L4 = List("L₄")
+L5 = List("L₅")
+L6 = List("L₆")
 
 STR1 = Str("Str1")
 STR2 = Str("Str2")
@@ -97,7 +171,7 @@ class Menu():
     options = [] # a list of MenuOption objects
     function = "" # name of function that stores the menu's code
     parameter = "" # the parameter that the function takes
-    label = "" # the label we can run GoTo on to get back to this menu
+    label = "" # the label we can run Goto on to get back to this menu
 
     def __init__(self, title, function, options):
         self.title = title
@@ -105,13 +179,13 @@ class Menu():
         self.parameter = re.search(r"^def " + function.__name__ + r"\s*\((.*)\):.*$", 
                                         str(inspect.getsource(self.function)).splitlines()[0]).groups()[0]
         self.options = options
-        self.label = generateLabel()
+        self.label = generate_label()
         for option in self.options:
-            option.setMenu(self)
+            option.set_menu(self)
 
-            start_end = getStartEndLines(self, option)
-            option.setStartLine(start_end[0])
-            option.setEndLine(start_end[1])
+            start_end = get_option_start_end_lines(self, option)
+            option.set_start_line(start_end[0])
+            option.set_end_line(start_end[1])
 
         labels.append({
             "title": self.title,
@@ -120,113 +194,70 @@ class Menu():
         })
         all_menus.append(self)
 
-    def getTitle(self):
+    def get_title(self):
         return self.title
     
-    def getOptions(self):
+    def get_options(self):
         return self.options
     
-    def getFunction(self):
+    def get_function(self):
         return self.function
 
-    def getLabel(self):
+    def get_label(self):
         return self.label
 
-    def setLabel(self, label):
+    def set_label(self, label):
         self.label = label
 
-    def getParameter(self):
+    def get_parameter(self):
         return self.parameter
 
 class MenuOption():
-    optionName = "" # name of option
+    option_name = "" # name of option
     label = "" # Will be generated by the computer
     menu = Menu # Whatever menu this MenuOption is a part of
 
     start_line = 0 # whatever line in the menu's function this option's code block begins and ends on
     end_line = 0
 
-    def __init__(self, optionName):
-        self.optionName = optionName
-        self.label = generateLabel()
+    def __init__(self, option_name):
+        self.option_name = option_name
+        self.label = generate_label()
 
         labels.append({
-            "title": self.optionName,
+            "title": self.option_name,
             "label": self.label,
             "type": MenuOption
         })
 
-    def getOptionName(self):
-        return self.optionName
+    def get_option_name(self):
+        return self.option_name
     
-    def getLabel(self):
+    def get_label(self):
         return self.label
     
-    def getMenu(self):
+    def get_menu(self):
         return self.menu
 
-    def setLabel(self, label):
-        self.labelName = label
+    def set_label(self, label):
+        self.label = label
     
-    def setMenu(self, menu):
+    def set_menu(self, menu):
         self.menu = menu
 
-    def setStartLine(self, start_line):
+    def set_start_line(self, start_line):
         self.start_line = start_line
 
-    def getStartLine(self):
+    def get_start_line(self):
         return self.start_line
     
-    def setEndLine(self, end_line):
+    def set_end_line(self, end_line):
         self.end_line = end_line
 
-    def getEndLine(self):
+    def get_end_line(self):
         return self.end_line
    
-# Used for when a line has a PB function that needs to be translated into Basic
-class NestedFunctionCall():
-    content = "" # the stuff in parentheses
-    start_index = 0
-    level = 0 # how nested this function call is (0 is innermost, 1 is next step up, etc)
-
-    def __init__(self, content, start_index, level):
-        self.content = content
-        self.start_index = start_index
-        self.level = level
-    
-    def get_content(self):
-        return self.content
-    
-    def get_start_index(self):
-        return self.start_index
-    
-    def get_level(self):
-        return self.level
-
-# What is output from a line translation. Includes the old string/substring, the translation, and the starting index of the old string.
-class TranslationObject():
-    old_content = ""
-    translation = ""
-    old_content_start_index = 0
-
-    def __init__(self, old_content, translation, old_content_start_index):
-        self.old_content = old_content
-        self.translation = translation
-        self.old_content_start_index = old_content_start_index
-        
-    
-    def get_old_content(self):
-        return self.old_content
-    
-    def get_translation(self):
-        return self.translation
-    
-    def get_old_content_start_index(self):
-        return self.old_content_start_index
-    
-
-
-def generateLabel(): # goes from AB to ZZ, over 600 combinations 
+def generate_label(): # goes from AB to ZZ, over 600 combinations 
     global global_label
     alphabet = list(string.ascii_uppercase)
 
@@ -242,7 +273,7 @@ def reformat_equation(equation):
     variable = ""
 
     equation_divider = re.search(r"^(\w*)\s*\+=|^(\w*)\s*=|^(\w*)\s*-=|^(\w*)\s*\*=|^(\w*)\s*\/=", equation)
-    equation = mathConvert(equation) # to replace "math." with calculator commands
+    equation = math_convert(equation) # to replace "math." with calculator commands
 
     
     negative_sequence = re.findall(r"[-+=/*][\s]*-\d*", equation)
@@ -296,7 +327,7 @@ def power(var, exponent):
     '''
     return f"{var}{superscript_number(exponent)}"
 
-def mathConvert(line):
+def math_convert(line):
     fixed_line = str(line)
     fixed_line=fixed_line.replace("math.sqrt(","√(")
     fixed_line=fixed_line.replace("math.fabs(","abs(")
@@ -319,7 +350,7 @@ def mathConvert(line):
     
     #same, but without "math." They might use
     #from math import sqrt etc...
-    fixed_line=fixed_line.replace("sqrt(","[root]^2(")
+    fixed_line=fixed_line.replace("sqrt(","√(")
     fixed_line=fixed_line.replace("fabs(","abs(")
     #(Redundant fixed_lines deleted)
     fixed_line=fixed_line.replace("log(","ln(")
@@ -328,26 +359,20 @@ def mathConvert(line):
     fixed_line=fixed_line.replace("log10(","log(")
 
     if not (fixed_line == line):
-        mathConvert(fixed_line)
+        math_convert(fixed_line)
     
     return fixed_line
 
-def basicAppend(input):
-    '''Appends the input to the existing TI-Basic code'''
+def basic_append(input):
+    '''Appends the input to the existing TI-Basic code.\n
+    NOTE: You don't call this function! This is automatically called by the module after a line is translated to Basic.'''
     global ti_basic
     ti_basic += str(input) + "\n"
 
-def literal_tibasic(input):
-    '''
-    Whatever is passed as input will be put into the final output file without any translation.\n
-    This may be useful if you need an especially complex line that this module isn't capable of creating automatically.
-    '''
-    return input.strip('"').strip("'")
-
-def getStartEndLines(menu, option): # automatically finds where each option's code starts and ends in its function
-    function_lines = getFunctionCode(menu)
-    parameter = menu.getParameter()
-    option_name = option.getOptionName()
+def get_option_start_end_lines(menu, option): # automatically finds where each option's code starts and ends in its function
+    function_lines = get_function_code(menu)
+    parameter = menu.get_parameter()
+    option_name = option.get_option_name()
     start = 0
     end = 0
 
@@ -373,19 +398,19 @@ def getStartEndLines(menu, option): # automatically finds where each option's co
 
     return [start, end]
 
-def getFunctionCode(menu): # returns the code of a menu's function
+def get_function_code(menu): # returns the code of a menu's function
     try:
-        return function_code[menu.getFunction().__name__]
+        return function_code[menu.get_function().__name__]
     except KeyError:
-        function_code[menu.getFunction().__name__] = str(inspect.getsource(menu.getFunction())).splitlines()
-        return function_code[menu.getFunction().__name__]
+        function_code[menu.get_function().__name__] = str(inspect.getsource(menu.get_function())).splitlines()
+        return function_code[menu.get_function().__name__]
 
-def getOptionCode(menu, option):
-    function_lines = getFunctionCode(menu)
+def get_option_code(menu, option):
+    function_lines = get_function_code(menu)
     option_lines = []
 
-    i = option.getStartLine()
-    while i <= option.getEndLine():
+    i = option.get_start_line()
+    while i <= option.get_end_line():
         option_lines.append(function_lines[i].strip())
         i += 1
     return option_lines
@@ -426,9 +451,7 @@ def string_insert(source_str, insert_str, pos):
     return source_str[:pos] + insert_str + source_str[pos:]
 
 def identify_line(line):
-    '''
-    Uses regex to look at each line and categorize it. The line is then translated differently depending on its type.
-    '''
+    '''Uses regex to look at each line and categorize it. The line is then translated differently depending on its type.'''
 
     global pb_import_name
 
@@ -436,15 +459,16 @@ def identify_line(line):
     line_values = {
         "empty_line" : False,
         "string_object" : False,
+        "list_object" : False,
         "pb_function" : False,
         "math_module" : False,
         "variable_set" : False,
-        "if_for_while" : False
+        "if_while" : False
     }
 
     # 1. Check if the line is a comment (begins with #) or is blank
-    # NOTE: If this is true, we skip over the rest of identification. Because what's the point
-    if str(line).startswith("#") or not line: # "not line" checks for a blank line
+    # NOTE: If this is true, we skip over the rest of identification.
+    if line.startswith("#") or not line: # "not line" checks for a blank line
         line_values["empty_line"] = True
         return line_values
 
@@ -453,25 +477,30 @@ def identify_line(line):
     if(re.search(pb_string_regex, line)):
         line_values["string_object"] = True
 
-    # 3. Check if the line calls a function from this module
+    # 3. Check if the line uses a list object
+    pb_list_regex = rf"([\w]+)\s*\.\s*(set_list|set_index|get_list|append|pop|contains_number|get_index|remove_index|remove_value)\s*\(.*\)"
+    if(re.search(pb_list_regex, line)):
+        line_values["list_object"] = True
+
+    # 4. Check if the line calls a function from this module
     pb_function_regex = f"{pb_import_name}\."
     if(re.search(pb_function_regex, line)):
         line_values["pb_function"] = True
     
-    # 4. Check if the line uses the math module
+    # 5. Check if the line uses the math module
     math_regex = rf"{math_import_name}\."
     if(re.search(math_regex, line)):
         line_values["math_module"] = True
 
-    # 5. Check if the line sets the value of a variable (i.e., x = 4)
-    variable_set_regex = r"([\w\d]+)\s*(?!==)(?:(?:=|\+=|-=|\/=))\s*(.*)"
+    # 6. Check if the line sets the value of a variable (i.e., x = 4)
+    variable_set_regex = r"^([\w\d]+)\s*(?!==)(?:(?:=|\+=|-=|\/=))\s*(.*)"
     if (re.search(variable_set_regex, line)):
         line_values["variable_set"] = True
 
-    # 6. Check if the line initializes an if statement or a for/while loop
-    if_for_while_regex = r"^(?:(?:if)|(?:while))"
-    if(re.search(if_for_while_regex, line)):
-        line_values["if_for_while"] = True
+    # 7. Check if the line initializes an if statement or a for/while loop
+    if_while_regex = r"^(?:(?:if)|(?:while))"
+    if(re.search(if_while_regex, line)):
+        line_values["if_while"] = True
 
     return line_values
 
@@ -516,13 +545,6 @@ def get_arguments(function_call):
             argument = argument.replace(",", "", 1)
         argument = argument.strip()
         arguments.append(argument)
-    
-    # if len(arguments) == 0:
-    #     # This means there is one argument not separated by commas, so the above code didn't catch the argument
-    #     # Return everything in the parentheses
-
-    #     argument_grabber_regex = r"\((\s*(?=\S+)\S*\s*)\)"
-    #     arguments.append(re_result.groups()[0])
 
     return arguments
 
@@ -531,6 +553,8 @@ def translate_pb_function(line):
     Translates the leftmost Python Basic function in the given line into its corresponding calculator command,
     then returns the line with the translation applied
     '''
+
+    print(f"Translate PB Function called! Line: {line}")
 
     pb_function_identifier = f"(?:{pb_import_name}\.([\w\d]*?)\()"
     re_result = re.search(pb_function_identifier, line)
@@ -612,7 +636,7 @@ def translate_pb_string(line):
         print(f"RETURNING LINE {line}")
         return line
     
-    string_get_regex = f"{pb_import_name}\.STR(\d)\.get\(\)"
+    string_get_regex = f"{pb_import_name}\.STR(\d)\.get_string\(\)"
     re_result = re.search(string_get_regex, line)
     if re_result:
         # STR.get is used
@@ -622,6 +646,75 @@ def translate_pb_string(line):
         line = line.replace(match, f"Str{groups[0]}")
         return line
     
+def translate_pb_list(line): # This turned out so much better than it should've
+    global pb_import_name, user_created_lists, global_vars
+
+    pb_list_regex = r"([\w]+)\s*\.\s*(set_list|set_index|get_list|append|pop|contains_number|get_index|remove_index|remove_value)"
+    re_result = re.search(pb_list_regex, line)
+    if re_result:
+        re_groups = re_result.groups()
+
+        selected_list = next((x for x in user_created_lists if x.get_object_name() == re_groups[0]), None)
+        command = re_groups[1]
+        variable = get_outermost_parentheses(line, re_result.start())
+        print(f"Variable for {line} is {variable}")
+
+        string_to_replace = f"{re_result.group()}({variable})"
+
+        
+        if variable:
+            print(f"Replacing {string_to_replace} in {line} with {str(getattr(selected_list, command)(variable))}")
+            line = line.replace(string_to_replace, str(getattr(selected_list, command)(variable)))
+        else:
+            print(f"Replacing {string_to_replace} in {line} with {str(getattr(selected_list, command)())}")
+            line = line.replace(string_to_replace, str(getattr(selected_list, command)()))
+        
+    return line
+
+def get_outermost_parentheses(line, start_index):
+    '''Takes the line, and, starting from start_index, finds the first open parentheses and returns everything in THAT pair of parentheses, including any nested parentheses.'''
+    line_chars = list(line)
+
+    i = start_index
+    parentheses_level = 0
+    in_quotes = False # if true, we ignore parentheses, as they are inside of a string
+    returning_chars = [] # the characters in the parentheses to be returned
+
+    print(f"String: {line}  Start index: {start_index}")
+    while i < len(line_chars):
+        char = line_chars[i]
+
+        if char != "(" and parentheses_level == 0:
+            i += 1
+            continue
+        if char == '"':
+            in_quotes = not in_quotes # inverting the value
+            i += 1
+            returning_chars.append(char)
+            continue
+        if char == "(" and not in_quotes:
+            parentheses_level += 1
+            i += 1
+            if parentheses_level != 1:
+                returning_chars.append(char)
+            continue
+        elif char == ")" and not in_quotes:
+            parentheses_level -= 1
+            if parentheses_level == 0:
+                break
+            else:
+                i += 1
+                returning_chars.append(char)
+                continue
+        else:
+            i += 1
+            returning_chars.append(char)
+            continue
+
+    returning_chars = "".join(returning_chars) # to turn it into a string
+
+    print(f"Returning chars: {returning_chars}")
+    return returning_chars
 
 def translate_one_function(function):
     '''
@@ -651,7 +744,8 @@ def translate_one_function(function):
         #print(f"line: {current_line}, index: {line_index}")
         # Check if this line is part of an indented segment. If not, append the End statement
         if in_indented_block and line_indentation <= statement_indentations[-1] and current_line:
-            if(current_line == "else:"):
+            print(f"Difference in indents is {indentations[master_index - 1] - line_indentation}")
+            if current_line == "else:" and line_indentation == statement_indentations[-1]:
                 translated_lines.append("Else")
                 current_index += 1
                 continue
@@ -662,8 +756,10 @@ def translate_one_function(function):
                 if not statement_indentations:
                     # if there are no more indented blocks that we are within, reset the boolean
                     in_indented_block = False
+                
+                continue
 
-        translated_line = translateLine(current_line, line_index)
+        translated_line = translate_line(current_line, line_index)
         translated_lines.append(translated_line)
         
         if translated_line.startswith("If"):
@@ -682,16 +778,16 @@ def translate_option_code(option):
     translated_option_code = [] # the translated list of strings to be returned
 
     # 1. Get the lines that make up this specific menuOption object
-    option_code = getOptionCode(option.getMenu(), option)
+    option_code = get_option_code(option.get_menu(), option)
     
     # 2. This line finds the line number in the child script that the function of this specified option begins on
-    function_start_line = list(file_lines.keys())[list(file_lines.values()).index(getFunctionCode(option.getMenu())[0])]
+    function_start_line = list(file_lines.keys())[list(file_lines.values()).index(get_function_code(option.get_menu())[0])]
     
     current_index = 0
 
     while current_index < len(option_code):
         # We start on the first line of this option's code within its function, and current_index ensures we increment by one line each iteration
-        master_index = function_start_line + option.getStartLine() + current_index
+        master_index = function_start_line + option.get_start_line() + current_index
         
         # In simplier terms, master_index is the line number of this line in the child script
 
@@ -701,8 +797,8 @@ def translate_option_code(option):
 
         #print(f"line: {current_line}, index: {line_index}")
         # Check if this line is part of an indented segment. If not, append the End statement
-        if in_indented_block and line_indentation <= statement_indentations[-1]:
-            if(current_line == "else:"):
+        if in_indented_block and line_indentation <= statement_indentations[-1] and current_line:
+            if current_line == "else:" and line_indentation == statement_indentations[-1]:
                 translated_option_code.append("Else")
                 current_index += 1
                 continue
@@ -714,7 +810,7 @@ def translate_option_code(option):
                     # if there are no more indented blocks that we are within, reset the boolean
                     in_indented_block = False
 
-        translated_line = translateLine(current_line, line_index)
+        translated_line = translate_line(current_line, line_index)
         translated_option_code.append(translated_line)
         
         if translated_line.startswith("If"):
@@ -752,7 +848,7 @@ def remove_spaces(input):
 
 def translate_if_while(line):
     line = str(line)
-    condition = "" # the entire substring after the if/while/for
+    condition = "" # the entire substring after the if/while
     conditions = "" # condition split by and/or
 
     line = line.replace("!=", "≠")
@@ -781,7 +877,7 @@ def translate_if_while(line):
     if line.startswith("while"):
         return f"While {translated_condition}"
 
-def translateLine(line, line_index): # actually not so bad anymore
+def translate_line(line, line_index): # actually not so bad anymore
     global pb_import_name, in_indented_block, statement_indentations, indentations
 
     # 1. Before translating, we call identify_line() to get an overview of the line
@@ -796,30 +892,34 @@ def translateLine(line, line_index): # actually not so bad anymore
     if line_info["empty_line"]:
         return ""
     
+        # 2(b): If a string is used, we translate_pb_string is called
     if line_info["string_object"]:
         line = translate_pb_string(line)
 
-        # 2(b): If the line contains a PB function, translate_pb_function is called
+        # 2(c): If a list is used, translate_pb_object is used
+    if line_info["list_object"]:
+        line = translate_pb_list(line)
+
+        # 2(d): If the line contains a PB function, translate_pb_function is called
     if line_info["pb_function"]:
         line = translate_pb_function(line)
 
-        # 2(c): If the line uses the math module, we convert it into the corresponding calculator commmand
+        # 2(e): If the line uses the math module, we convert it into the corresponding calculator commmand
     if line_info["math_module"]:
-        line = mathConvert(line)
+        line = math_convert(line)
 
-        # 2(d): A variable is set (i.e., x = 4)
+        # 2(f): A variable is set (i.e., x = 4)
     if line_info["variable_set"]:
         line = reformat_equation(line)
 
-        # 2(e): An if, for, or while statement is defined
-    if line_info["if_for_while"]:
+        # 2(g): An if, for, or while statement is defined
+    if line_info["if_while"]:
         # Declare that we're now in an indented code block
         in_indented_block = True
         statement_indentations.append(indentations[line_index])
-        #statement_indentation = indentations[line_index]
-        print(f"Line: {line}\tIndent: {statement_indentations[-1]}")
+        #print(f"Line: {line}\tIndent: {statement_indentations[-1]}")
 
-        return translate_if_while(line)
+        line = translate_if_while(line)
         
 
     # End of function checks
@@ -832,102 +932,7 @@ def translateLine(line, line_index): # actually not so bad anymore
     if done_translating:
         return line
     else:
-        return translateLine(line, line_index) # recursion baby
-
-def splitDisplayIntoLines(text):
-    global screen_width
-
-    splitters = ["=","+","-","/","*"] # list of symbols that are generally a good idea to split a line by
-    text = str(text)
-
-    letter = screen_width - 1 # we start by looking backwards from the end of the line for a good splitter
-    while letter >= 0:
-        if text[letter] in splitters: # we split the line here
-            line1 = text[:letter + 1]
-            line2 = text[letter + 1:]
-            return [line1, line2]
-        letter -= 1
-    
-    # if we get here, no valid splitter was found, so we split at the screen width
-    line1 = text[:screen_width]
-    line2 = text[screen_width:]
-    return [line1, line2]
-
-def disp(text): # turns a string into a Disp command, splitting the string into multiple lines as needed
-    global tibasic
-    text = str(text)
-    output = ""
-    result = "" # what will be returned
-    screen_width = 24 # how many characters can be displayed in one line on the screen (will vary a bit between models but 24 for TI-84 Plus CE)
-
-    if (len(text) > screen_width): # it won't fit into one line, so we have to break it up
-        broken_string = text.split()
-
-        line = ""
-        for word in broken_string:
-            if(len(word) > screen_width): # we must trim it
-                trimmed = splitDisplayIntoLines(word)
-                broken_string.insert(broken_string.index(word) + 1, trimmed[1])
-                word = trimmed[0]
-
-            if(((len(word) + len(line)) > screen_width) and len(line) > 0):
-                output += line.strip() + "\n"
-                line = word + " "
-            else:
-                line += word + " "
-        output += line.strip()
-    
-        output_lines = output.split("\n")
-        for output_line in output_lines:
-            result += "Disp " + str(output_line) + "\n"
-    else:
-        # text is 24 characters or less, so it'll fit onto one line
-
-        if ("\"" in text):
-            # text is a string type
-            result += "Disp " + str(text) + "\n"
-        else:
-            result += "Disp " + str(text).replace(" ", "").replace("+", ",") + "\n"
-    result = result.rsplit("\n", 1)[0] # to remove line breaks at the end
-    return result
-
-def goToLabel(label):
-    global global_vars
-
-    if(".getLabel()" in label): # a literal string was not given
-        label = global_vars[f"{label.split(".")[0]}"].getLabel()
-
-    return "Goto " + label
-
-def goToMenuTitle(menu_title):
-    global global_vars, all_menus
-    
-    if(".getTitle()" in menu_title): # a literal string was not given
-        menu_title = global_vars[f"{menu_title.split(".")[0]}"].getTitle()
-
-    for menu in all_menus:
-        if menu.getTitle() == menu_title:
-            return ("Goto " + menu.getLabel())
-    # if no match
-    print("No label found for " + menu_title)
-
-def goToMenu(menu):
-    global global_vars, all_menus
-
-    menu = global_vars[menu]
-
-    for m in all_menus:
-        if m == menu:
-            try:
-                return f"Goto {m.getLabel()}"
-            except:
-                print(f"No label found for {m}")
-
-def clrHome():
-    return "ClrHome"
-
-def pause():
-    return "Pause "
+        return translate_line(line, line_index) # recursion baby
 
 def list_input(input): # for when we need to make a call with globals() but we have multiple parameters
     for item in input:
@@ -947,55 +952,9 @@ def list_input(input): # for when we need to make a call with globals() but we h
         return globals()[function_name](input[1], input[2], input[3], input[4])
     if(len(input) == 6):
         return globals()[function_name](input[1], input[2], input[3], input[4], input[5])
-    
-def output(line, character, output):
-    """Takes in a list input with 3 elements\n
-    1st - Line number, 2nd - Character number, 3rd - text"""
-
-
-
-    if(not "\"" in output):
-         # we're not outputting a string, so we remove spaces to help prevent errors
-         output = output.replace(" ", "")
-    return f"Output({line},{character},{output})"
-
-def Prompt(variable):
-    return f"Prompt {variable.replace(" ", "").upper()}"
-
-def For(variable, start, end, step=1):
-    '''
-    Executes some commands many times, with a variable increasing from start to end by step, with the default value step=1.\n
-    NOTE: After you've written the code to be contained in the For loop, put an End() function after it! Otherwise your loop will never close.
-    '''
-    return f"For({variable},{start},{end},{step})"
-
-def newLine():
-    return "\n"
-
-def variableSet(variable, expression):
-    translated_line = translateLine(expression)
-    #print("translation of " + str(expression) + " is " + str(translated_line))
-    if(translated_line == ""):
-        return str(expression) + "→" + str(variable)
-    else:
-        return str(translated_line) + "→" + str(variable)
-
-def Stop():
-    return "Stop"
-
-def End():
-    return "End"
 
 def read_file_lines(filename):
-  '''
-  Reads a Python file and returns a dictionary mapping line numbers to indentation levels.
-
-  Args:
-    filename: The path to the Python file.
-
-  Returns:
-    A dictionary mapping line numbers (starting from 1) to indentation levels (number of spaces).
-  '''
+  '''Reads a Python file and returns a dictionary mapping line numbers to indentation levels.'''
   global file_lines, indentations
 
   current_indent = 0
@@ -1060,30 +1019,30 @@ def setup(child_globals, filename, chosen_function = None): # Called from child 
         
         translated_function = translate_one_function(chosen_function)
         for line in translated_function:
-            basicAppend(line)
+            basic_append(line)
     else:
         # 3. Go through each menu that the user created and translate it to Basic
         for menu in all_menus:
-            menuOptions = menu.getOptions()
+            menuOptions = menu.get_options()
 
-            basicAppend(f"Lbl {menu.getLabel()}")
-            menu_syntax = f"Menu(\"{menu.getTitle().upper()}\"" # starting syntax for the menu option in Basic
+            basic_append(f"Lbl {menu.get_label()}")
+            menu_syntax = f"Menu(\"{menu.get_title().upper()}\"" # starting syntax for the menu option in Basic
 
             for option in menuOptions:
-                menu_syntax += f",\"{option.getOptionName().upper()}\",{option.getLabel()}"
+                menu_syntax += f",\"{option.get_option_name().upper()}\",{option.get_label()}"
             
-            basicAppend(menu_syntax) # writes the line in Basic that declares the menu
+            basic_append(menu_syntax) # writes the line in Basic that declares the menu
 
             for option in menuOptions:
-                basicAppend(f"Lbl {option.getLabel()}")
+                basic_append(f"Lbl {option.get_label()}")
                 
                 translated_option_code = translate_option_code(option)
                 for line in translated_option_code:
                     #translated_line = translateLine(line)
                     #print(f"TRANSLATION: {line}")
-                    basicAppend(line)
+                    basic_append(line)
                 
-                basicAppend(Stop())
+                basic_append(Stop())
 
     # 4. Check translated lines for negative numbers and fix them
     split_ti_basic = []
@@ -1100,6 +1059,8 @@ def setup(child_globals, filename, chosen_function = None): # Called from child 
     file.close()
     print("\nTI-Basic:\n" + ti_basic)
 
+# Above are the functions that translate the module into Basic.
+# Except for setup(), they should not be called by the user; rather, they should only be called from this module.
 
 
 
@@ -1115,8 +1076,7 @@ def setup(child_globals, filename, chosen_function = None): # Called from child 
 
 
 
-
-# now for hell
+# Below are the functions to be called by the user, AKA, the actual calculator commands.
 
 def abs(value):
 	'''Returns the absolute value of a real number, and the complex absolute value of a complex number.'''
@@ -1144,41 +1104,13 @@ def binompdf(trials,probability,value=-1):
     else:
         return f"binompdf({trials},{probability},{value})"
 
-def get_color_number(color: COLORS = "BLUE"):
-    '''Returns the numeric value of the given color string. Ranges from 10-24.'''
-    color = color.strip('"').strip("'")
-    if color not in COLOR_LIST:
-        print(f"Unaccepted color {color}")
-    else:
-        return str(10 + COLOR_LIST.index(color))
+def ClrHome():
+    '''Returns a *ClrHome* command.'''
+    return "ClrHome"
 
-def PlotScatter(plot_number,x_list,y_list,mark: MARKS = "▫"):
-    '''Plot#(Scatter, x-list, y-list, mark) defines a scatter plot. The points defined by x-list and y-list are plotted using mark on the graph screen. x-list and y-list must be the same length.'''
-    mark = FIXED_MARKS[mark.strip("'").strip('"')]
-    return f"Plot{plot_number}(Scatter,{x_list},{y_list},{mark})"
-
-def PlotxyLine(plot_number,x_list,y_list,mark: MARKS = "▫"):
-    '''Plot#(xyLine, x-list, y-list, mark) defines an xyLine plot. Similarly to a scatter plot, the points defined by x-list and y-list are plotted using mark on the graph screen, but with an xyLine plot they are also connected by a line, in the order that they occur in the lists. x-list and y-list must be the same length.'''
-    mark = FIXED_MARKS[mark.strip("'").strip('"')]
-    return f"Plot{plot_number}(xyLine,{x_list},{y_list},{mark})"
-
-def PlotHistogram(plot_number,x_list,frequency_list):
-    '''Plot#(Histogram, x-list, freq list) defines a Histogram plot. The x-axis is divided into intervals that are Xscl wide. A bar is drawn in in each interval whose height corresponds to the number of points in the interval. Points that are not between Xmin and Xmax are not tallied. Xscl must not be too small - it can divide the screen into no more than 47 different bars.'''
-    return f"Plot{plot_number}(Histogram,{x_list},{frequency_list})"
-
-def PlotBoxplot(plot_number,x_list,frequency_list):
-    '''Plot#(Boxplot, x-list, freq list) defines a box plot. A rectangular box is drawn whose left edge is Q1 (the first quartile) of the data, and whose right edge is Q3 (the third quartile). A vertical segment is drawn within the box at the median, and 'whiskers' are drawn from the box to the minimum and maximum data points. The box plot ignores the Ymax and Ymin dimensions of the screen, and any plots that aren't box plots or modified box plots. Each box plot takes approximately 1/3 of the screen in height, and if more than one are plotted, they will take up different areas of the screen.'''
-    return f"Plot{plot_number}(Boxplot,{x_list},{frequency_list})"
-
-def PlotModBoxplot(plot_number,x_list,frequency_list,mark: MARKS = "▫"):
-    '''Plot#(ModBoxplot, x-list, freq list, mark) defines a modified box plot. This is almost entirely like the normal box plot, except that it also draws outliers. Whiskers are only drawn to the furthers point within 1.5 times the interquartile range (Q3-Q1) of the box. Beyond this point, data points are drawn individually, using mark. The box plot ignores the Ymax and Ymin dimensions of the screen, and any plots that aren't box plots or modified box plots. Each box plot takes approximately 1/3 of the screen in height, and if more than one are plotted, they will take up different areas of the screen.'''
-    mark = FIXED_MARKS[mark.strip("'").strip('"')]
-    return f"Plot{plot_number}(ModBoxplot,{x_list},{frequency_list},{mark})"
-
-def NormProbPlot(plot_number,data_list,data_axis,mark: MARKS = "▫"):
-    '''Plot#(NormProbPlot, data list, data axis, mark) defines a normal probability plot. The mean and standard deviation of the data are calculated. Then for each point, the number of standard deviations it is from the mean is calculated, and the point is plotted against this number using mark. data axis can be either X or Y: it determines whether the value of a point determines it's x-coordinate or y-coordinate. The point behind this rather convoluted process is to test the extent to which the data is normally distributed. If it follows the normal distribution closely, then the result will be close to a straight line - otherwise it will be curved.'''
-    mark = FIXED_MARKS[mark.strip("'").strip('"')]
-    return f"Plot{plot_number}(NormProbPlot,{data_list},{data_axis},{mark})"
+def dim(list):
+    '''The dim( command is used to find the size of an existing list or matrix. It takes only one argument - the list or matrix you want the size of. For a list, it returns the number of elements; for a matrix, it returns a two-element list of the number of rows and the number of columns.'''
+    return f"dim({list})"
 
 def checkTmr(Variable):
 	'''Returns the number of seconds since the timer was started.'''
@@ -1212,9 +1144,29 @@ def dbd(date1,date2):
 	'''Calculates the number of days between two days.'''
 	return f"dbd({date1},{date2})"
 
+def DelVar(variable):
+    '''The DelVar command deletes the contents of a variable (and thus the variable itself) from memory. You can use the DelVar command with any variable: reals, lists, matrices, strings, pictures, etc. However, you cannot use DelVar on specific elements of a matrix or string; it will actually throw a ERR:SYNTAX error. (It also does not work on programs, unfortunately.)'''
+    return f"DelVar {variable}"
+
 def det(matrix):
 	'''Calculates the determinant of a square matrix.'''
 	return f"det({matrix})"
+
+def Disp(input):
+    '''Displays the given input.'''
+    return f"Disp {remove_spaces(input)}"
+
+def End():
+    '''Returns an *End* statement'''
+    return "End"
+
+def eval(string):
+    '''The eval( command, given an expression that evaluates to a real number, returns the string representation of that number.'''
+    return f"eval({string})"
+
+def Exit():
+    '''The Exit command immediately exits from a For..EndFor, Loop..EndLoop, or While..EndWhile loop. The program continues running from the instruction after the EndFor, EndLoop, or EndWhile.'''
+    return "Exit"
 
 def expr(string):
 	'''Returns the value of a string that contains an expression.'''
@@ -1223,6 +1175,10 @@ def expr(string):
 def Fill(value,matrix):
 	'''Fills a list or matrix with one number.'''
 	return f"Fill({value},{matrix})"
+
+def floor(number):
+    '''The floor() command rounds a number down to the nearest integer less than or equal to the number. For instance, floor(π) returns 3, while floor(-π) returns -4'''
+    return f"floor({number})"
 
 def fMax(function,var,min,max):
     '''fMax(f(var),var,lo,hi[,tol]) finds the value of var between lo and hi at which the maximum of f(var) occurs. tol controls the accuracy of the maximum value computed. The default value of tol is 10-5. fMax( only works for real numbers and expressions. Brent's method for optimization is used for approximating the maximum value.
@@ -1239,6 +1195,13 @@ def fMin(function,var,min,max):
 def fnInt(function,var,a,b):
     '''fnInt(f(var),var,a,b[,tol]) computes an approximation to the definite integral of f with respect to var from a to b. tol controls the accuracy of the integral computed. The default value of tol is 10-5. fnInt( returns exact results for functions that are polynomials of small degree. fnInt( only works for real numbers and expressions. The Gauss-Kronrod method is used for approximating the integral. Tip: Sometimes, to get an answer of acceptable accuracy out of fnInt(, substitution of variables and analytic manipulation may be needed.'''
     return f"fnInt({remove_spaces(function.strip('"').strip("'"))},{var},{a},{b})"
+
+def For(variable, start, end, step=1):
+    '''
+    Executes some commands many times, with a variable increasing from start to end by step, with the default value step=1.\n
+    NOTE: After you've written the code to be contained in the For loop, put an End() function after it! Otherwise your loop will never close.
+    '''
+    return f"For({variable},{start},{end},{step})"
 
 def fPart(value):
 	'''Returns the fractional part of a value.'''
@@ -1268,6 +1231,18 @@ def GetCalc(variable):
 	'''Gets a variable from another calculator.'''
 	return f"GetCalc({variable})"
 
+def getKey():
+    '''The getKey() command returns the key code of the last keypress. If no key was pressed since the program, function, or expression started running, or since the last getKey() command, getKey() returns 0. It's important to note that once getKey() is used, the keypress is forgotten — even if it's used in the same line! So most of the time you want to store the result of getkey to a variable to use it.'''
+    return "getKey"
+
+def get_color_number(color: COLORS = "BLUE"):
+    '''Returns the numeric value of the given color string. Ranges from 10-24.'''
+    color = color.strip('"').strip("'")
+    if color not in COLOR_LIST:
+        print(f"Unaccepted color {color}")
+    else:
+        return str(10 + COLOR_LIST.index(color))
+
 def getDtStr(value):
 	'''Returns the current date of the clock on the TI-84+/SE/CE as a string.'''
 	return f"getDtStr({value})"
@@ -1275,6 +1250,39 @@ def getDtStr(value):
 def getTmStr(value):
 	'''Returns the current time of the clock on the TI-84+/SE as a string.'''
 	return f"getTmStr({value})"
+
+def goto_label(label):
+    global global_vars
+
+    if(".get_label()" in label): # a literal string was not given
+        label = global_vars[f"{label.split(".")[0]}"].get_label()
+
+    return f"Goto {label.strip('"')}"
+
+def goto_menu(menu):
+    '''Takes a menu object and returns a Goto command pointing to that menu's label.'''
+    global global_vars, all_menus
+
+    menu = global_vars[menu]
+
+    for m in all_menus:
+        if m == menu:
+            try:
+                return f"Goto {m.get_label()}"
+            except:
+                print(f"No label found for {m}")
+
+def goto_menu_title(menu_title):
+    global global_vars, all_menus
+    
+    if(".get_title()" in menu_title): # a literal string was not given
+        menu_title = global_vars[f"{menu_title.split(".")[0]}"].get_title()
+
+    for menu in all_menus:
+        if menu.get_title() == menu_title:
+            return f"Goto {menu.get_label()}"
+    # if no match
+    print("No label found for " + menu_title)
 
 # def GraphStyle(equation#,style#):
 # 	'''Sets the graphing style of a graphing equation in the current mode.'''
@@ -1311,6 +1319,10 @@ def iPart(value):
 	'''Returns the integer part of a value.'''
 	return f"iPart({value})"
 
+def Lbl(label):
+    '''Using Lbl is simple: just put it (on a line by itself) at a point in the program you might want to jump to later, and add an identifier. The identifiers TI-Basic allows are one or two characters long, and made up of letters and numbers (so Lbl 0, Lbl XY, Lbl A5, and Lbl 99 are all valid labels). When the program is running normally, the calculator will just skip over a label as though it weren't there.'''
+    return f"Lbl {label.replace('"', "").replace("'", "")}"
+    
 def lcm(value1,value2):
 	'''Finds the least common multiple of two values.'''
 	return f"lcm({value1},{value2})"
@@ -1322,6 +1334,13 @@ def length(string):
 def Line(x1,y1,x2,y2):
     '''The Line( command is used to draw lines at any angle, as opposed to only drawing vertical or horizontal lines. Line(X1,Y1,X2,Y2) will draw a line from (X1,Y1) to (X2,Y2). Line( is affected by the window settings, although you can use a friendly window so there is no impact on the command.'''
     return f"Line({x1},{y1},{x2},{y2})"
+
+def literal_tibasic(input):
+    '''
+    Whatever is passed as input will be put into the final output file without any translation.\n
+    This may be useful if you need an especially complex line that this module isn't capable of creating automatically.
+    '''
+    return input.strip('"').strip("'")
 
 def ln(value):
 	'''Computes the (principal branch of the) natural logarithm.'''
@@ -1378,6 +1397,11 @@ def normalpdf(x,mean=0,sd=1):
     '''normalpdf( is the normal (Gaussian) probability density function. Since the normal distribution is continuous, the value of normalpdf( doesn't represent an actual probability - in fact, one of the only uses for this command is to draw a graph of the normal curve. You could also use it for various calculus purposes, such as finding inflection points. The command can be used in two ways: normalpdf(x) will evaluate the standard normal p.d.f. (with mean at 0 and a standard deviation of 1) at x, and normalpdf(x,μ,σ) will work for an arbitrary normal curve, with mean μ and standard deviation σ.'''
     return f"normalpdf({x},{mean},{sd})"
 
+def NormProbPlot(plot_number,data_list,data_axis,mark: MARKS = "▫"):
+    '''Plot#(NormProbPlot, data list, data axis, mark) defines a normal probability plot. The mean and standard deviation of the data are calculated. Then for each point, the number of standard deviations it is from the mean is calculated, and the point is plotted against this number using mark. data axis can be either X or Y: it determines whether the value of a point determines it's x-coordinate or y-coordinate. The point behind this rather convoluted process is to test the extent to which the data is normally distributed. If it follows the normal distribution closely, then the result will be close to a straight line - otherwise it will be curved.'''
+    mark = FIXED_MARKS[mark.strip("'").strip('"')]
+    return f"Plot{plot_number}(NormProbPlot,{data_list},{data_axis},{mark})"
+
 def Not(value):
     '''Flips the truth value of its argument.'''
     return f"not({value})"
@@ -1415,6 +1439,33 @@ def Output(row,column,expression):
 	'''Displays an expression on the home screen starting at a specified row and column. Wraps around if necessary.'''
 	return f"Output({row},{column},{expression})"
 
+def Pause():
+    ''''Returns a *Pause* command.'''
+    return "Pause "
+
+def PlotBoxplot(plot_number,x_list,frequency_list):
+    '''Plot#(Boxplot, x-list, freq list) defines a box plot. A rectangular box is drawn whose left edge is Q1 (the first quartile) of the data, and whose right edge is Q3 (the third quartile). A vertical segment is drawn within the box at the median, and 'whiskers' are drawn from the box to the minimum and maximum data points. The box plot ignores the Ymax and Ymin dimensions of the screen, and any plots that aren't box plots or modified box plots. Each box plot takes approximately 1/3 of the screen in height, and if more than one are plotted, they will take up different areas of the screen.'''
+    return f"Plot{plot_number}(Boxplot,{x_list},{frequency_list})"
+
+def PlotHistogram(plot_number,x_list,frequency_list):
+    '''Plot#(Histogram, x-list, freq list) defines a Histogram plot. The x-axis is divided into intervals that are Xscl wide. A bar is drawn in in each interval whose height corresponds to the number of points in the interval. Points that are not between Xmin and Xmax are not tallied. Xscl must not be too small - it can divide the screen into no more than 47 different bars.'''
+    return f"Plot{plot_number}(Histogram,{x_list},{frequency_list})"
+
+def PlotModBoxplot(plot_number,x_list,frequency_list,mark: MARKS = "▫"):
+    '''Plot#(ModBoxplot, x-list, freq list, mark) defines a modified box plot. This is almost entirely like the normal box plot, except that it also draws outliers. Whiskers are only drawn to the furthers point within 1.5 times the interquartile range (Q3-Q1) of the box. Beyond this point, data points are drawn individually, using mark. The box plot ignores the Ymax and Ymin dimensions of the screen, and any plots that aren't box plots or modified box plots. Each box plot takes approximately 1/3 of the screen in height, and if more than one are plotted, they will take up different areas of the screen.'''
+    mark = FIXED_MARKS[mark.strip("'").strip('"')]
+    return f"Plot{plot_number}(ModBoxplot,{x_list},{frequency_list},{mark})"
+
+def PlotScatter(plot_number,x_list,y_list,mark: MARKS = "▫"):
+    '''Plot#(Scatter, x-list, y-list, mark) defines a scatter plot. The points defined by x-list and y-list are plotted using mark on the graph screen. x-list and y-list must be the same length.'''
+    mark = FIXED_MARKS[mark.strip("'").strip('"')]
+    return f"Plot{plot_number}(Scatter,{x_list},{y_list},{mark})"
+
+def PlotxyLine(plot_number,x_list,y_list,mark: MARKS = "▫"):
+    '''Plot#(xyLine, x-list, y-list, mark) defines an xyLine plot. Similarly to a scatter plot, the points defined by x-list and y-list are plotted using mark on the graph screen, but with an xyLine plot they are also connected by a line, in the order that they occur in the lists. x-list and y-list must be the same length.'''
+    mark = FIXED_MARKS[mark.strip("'").strip('"')]
+    return f"Plot{plot_number}(xyLine,{x_list},{y_list},{mark})"
+
 def poissoncdf(mean,value):
 	'''Calculates the Poisson cumulative probability for a single value'''
 	return f"poissoncdf({mean},{value})"
@@ -1433,6 +1484,10 @@ def prod(list,start=-1,end=-1):
         return f"prod({list},{start})"
     else:
         return f"prod({list})"
+
+def Prompt(variable):
+    '''Prompts the user for a variable. Make sure you follow Basic's rules for variable names!'''
+    return f"Prompt {variable}"
 
 def PtChange(X,Y):
 	'''Toggles a point on the graph screen.'''
@@ -1550,7 +1605,11 @@ def stdDev(list,frequency_list = None):
         return f"stdDev({list})"
     else:
         return f"stdDev({list},{frequency_list})"
-        
+
+def Stop():
+    '''Returns a *Stop* statement'''
+    return "Stop"
+
 def sub(string,start,length):
 	'''Returns a specific part of a given string, or divides by 100.'''
 	return f"sub({string},{start},{length})"
@@ -1582,3 +1641,13 @@ def toString(input):
 def tpdf(t,ν):
 	'''Evaluates the Student's t probability density function with degrees of freedom ν.'''
 	return f"tpdf({t},{ν})"
+
+def variable_set(variable, expression):
+    '''An alternative to typing out a variable's value\n
+    Instead of x = 4, you could type pythonbasic.variable_set(x, 4)'''
+    translated_line = translate_line(expression)
+    #print("translation of " + str(expression) + " is " + str(translated_line))
+    if(translated_line == ""):
+        return str(expression) + "→" + str(variable)
+    else:
+        return str(translated_line) + "→" + str(variable)
