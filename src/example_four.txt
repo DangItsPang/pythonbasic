@@ -1,0 +1,159 @@
+{0}→⌊FTR
+
+Disp "Integer?"
+Prompt N
+
+1→I
+While I<abs(N)/2
+N/I→R
+
+If max(not(⌊FTR-R)
+Then
+abs(N)→I
+
+End
+If fPart(R)=0 and not(max(not(⌊FTR-R))
+Then
+
+R→⌊FTR(1+dim(⌊FTR))
+I→⌊FTR(1+dim(⌊FTR))
+R*­1→⌊FTR(1+dim(⌊FTR))
+I*­1→⌊FTR(1+dim(⌊FTR))
+
+End
+I+1→I
+
+End
+ClrHome
+seq(⌊FTR(X+(X≥1)),X,1,dim(⌊FTR)+­1)→⌊FTR
+
+dim(⌊FTR)→M
+1→I
+
+
+
+
+0→P
+M/32→U
+If fPart(U)=0
+Then
+U-1→U
+End
+int(U)→U
+
+Lbl AA
+ClrHome
+
+Output(1,1,"FACTORS OF")
+Output(1,12,N)
+Output(10,1,"ENTER TO CLOSE")
+If M>32
+Then
+If P≠0
+Then
+Output(1,22,"PRV ^")
+End
+If P≠U
+Then
+Output(10,22,"NXT v")
+
+End
+End
+If P<0
+Then
+0→P
+End
+If M<U
+Then
+U→P
+
+End
+P*32+1→I
+2→R
+
+If M-I>32
+Then
+
+While I<P*32+32
+
+Output(R,1,"("+toString(⌊FTR(I))+", "+toString(⌊FTR(I+1))+")")
+I+2→I
+
+If M-I≥1
+Then
+Output(R,14,"("+toString(⌊FTR(I))+", "+toString(⌊FTR(I+1))+")")
+I+2→I
+R+1→R
+
+End
+End
+0→K
+While K=0
+getKey→Q
+If Q=25 and P≠0
+Then
+
+P-1→P
+Q→K
+Goto AA
+End
+If Q=34 and P≠U
+Then
+
+P+1→P
+Q→K
+Goto AA
+End
+If Q=105
+Then
+
+Q→K
+ClrHome
+Stop
+End
+End
+Else
+While I<M
+Output(R,1,"("+toString(⌊FTR(I))+", "+toString(⌊FTR(I+1))+")")
+I+2→I
+
+If M-I≥1
+Then
+Output(R,14,"("+toString(⌊FTR(I))+", "+toString(⌊FTR(I+1))+")")
+I+2→I
+R+1→R
+
+End
+End
+If P≠0
+Then
+0→K
+While K=0
+getKey→Q
+If Q=25 and P≠0
+Then
+
+P-1→P
+Q→K
+Goto AA
+End
+If Q=34 and P≠U
+Then
+
+P+1→P
+Q→K
+Goto AA
+End
+If Q=105
+Then
+
+Q→K
+ClrHome
+Stop
+
+End
+End
+End
+Pause 
+ClrHome
+Stop
