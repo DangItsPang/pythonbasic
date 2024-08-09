@@ -2,9 +2,19 @@
 layout: default
 ---
 
+# Python Basic
+## A better way to program in TI-Basic
+
+Welcome to Python Basic! Here, you'll find an overview of the module, a getting started guide, a handful of example programs, and some frequently-asked questions.
+
+
 Text can be **bold**, _italic_, or ~~strikethrough~~.
 
-[Link to another page](./another-page.html).
+[Overview](./overview.md).
+[Getting Started](./overview.html).
+[Example Programs](./examples.md).
+
+
 
 There should be whitespace between paragraphs.
 
