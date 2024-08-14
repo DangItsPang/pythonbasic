@@ -3,8 +3,6 @@
 
 **Python Basic aims to simplify the process of writing code for Texas Instruments calculators.**
 
-<a href="https://www.buymeacoffee.com/owengold" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-yellow.png" alt="Buy Me A Coffee" height="41" width="174"></a>
-
 For example, consider this code written in TI-Basic:
 ```
 Prompt A
@@ -307,3 +305,11 @@ Say we run the program and specific -300 as our integer. Here's the list of fact
 | ![The first page of the factors for -300](./photos/example_four(1).png) | ![The second page of the factors for -300](./photos/example_four(2).png)
 |:--:|:--:|
 | *The first page of the factors for -300* | *The second page of the factors for -300* |
+
+## Help out! (If you want)
+Thanks for reading this far! If you'd like to support me, you can follow me on X or buy me a coffee!
+
+
+<a href="https://twitter.com/ReallyOwenGold?ref_src=twsrc%5Etfw" class="twitter-follow-button" data-size="large" data-show-count="false" height="51.25" width="125">Follow @ReallyOwenGold</a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<a href="https://www.buymeacoffee.com/owengold"><img src="photos/orange-button.png" width="204.375" height="57.375"></a>
