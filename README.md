@@ -1,7 +1,9 @@
 # Python Basic
 *An easier way to write TI-Basic!*
 
-**Python Basic aims to simplify the process of writing code for Texas Instruments calculators.**
+[**Check out the website!**](https://dangitspang.github.io/pythonbasic/)
+
+### **Python Basic aims to simplify the process of writing code for Texas Instruments calculators.**
 
 For example, consider this code written in TI-Basic:
 ```
@@ -310,6 +312,6 @@ Say we run the program and specific -300 as our integer. Here's the list of fact
 Thanks for reading this far! If you'd like to support me, you can follow me on X or buy me a coffee!
 
 
-<a href="https://twitter.com/ReallyOwenGold?ref_src=twsrc%5Etfw" class="twitter-follow-button" data-size="large" data-show-count="false" height="51.25" width="125">Follow @ReallyOwenGold</a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<a href="https://twitter.com/ReallyOwenGold?ref_src=twsrc%5Etfw" class="twitter-follow-button" data-size="large" data-show-count="false" height="51.25" width="125">Follow me on X!</a>
 
 <a href="https://www.buymeacoffee.com/owengold"><img src="photos/orange-button.png" width="204.375" height="57.375"></a>
