@@ -5,7 +5,6 @@ src/example_four.py
 src/example_one.py
 src/example_three.py
 src/example_two.py
-src/mathchecker.py
 src/pythonbasic.py
 src/pythonbasic.egg-info/PKG-INFO
 src/pythonbasic.egg-info/SOURCES.txt
