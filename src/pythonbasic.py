@@ -2,7 +2,7 @@ import numpy as np
 import string
 import inspect
 import re
-import typing
+from pathlib import Path
 from typing import Literal
 import sys
 import math
@@ -987,18 +987,19 @@ def read_file_lines(filename):
 
         #print(f"{line_number}: ({line_indent}) {line.strip()}")
 
-def setup(child_globals, filename, chosen_function = None): # Called from child script to begin the heavy lifting
+def translate(globals = globals(), filename = __file__, chosen_function = None): # Called from child script to begin the heavy lifting
+    '''Call this add the end of your python file to translate it into TI-Basic'''
     global global_vars, file_lines, pb_import_name, math_import_name, ti_basic, indentations
 
     # 1. Get all file info for later
-    global_vars = child_globals
+    global_vars = globals
     read_file_lines(filename)
 
     # 2. Get the shorthand for the modules in the child script
     for line in file_lines.values():
         if "import pythonbasic" in line:
             if(" as " in line):
-                pb_import_name = line.split("import pythonbasic as ")[1].strip()
+                pb_import_name = line.split("import pythonbasic as ")[1].split("#")[0].strip()
                 print(f"imported as {pb_import_name}")
             else:
                 pb_import_name = "pythonbasic"
@@ -1007,7 +1008,7 @@ def setup(child_globals, filename, chosen_function = None): # Called from child 
                 break
         if "import math" in line:
             if(" as " in line):
-                math_import_name = line.split("import math as ")[1].strip()
+                math_import_name = line.split("import math as ")[1].split("#")[0].strip()
             else:
                 math_import_name = "math"
             
@@ -1052,8 +1053,9 @@ def setup(child_globals, filename, chosen_function = None): # Called from child 
     ti_basic = "\n".join(split_ti_basic)
 
     # 5. Write output to file
+    parent_directory = Path(__file__).parent
     filename = input("Enter the output file name. Omit .txt\n")
-    filename += ".txt"
+    filename = f"{parent_directory}/{filename}.txt"
     file = open(filename, "w", encoding="utf-8")
     file.writelines(ti_basic)
     file.close()
@@ -1279,7 +1281,7 @@ def goto_menu_title(menu_title):
         menu_title = global_vars[f"{menu_title.split(".")[0]}"].get_title()
 
     for menu in all_menus:
-        if menu.get_title() == menu_title:
+        if menu.get_title() == menu_title.strip('"').strip("'"):
             return f"Goto {menu.get_label()}"
     # if no match
     print("No label found for " + menu_title)
@@ -1299,6 +1301,10 @@ def imag(value):
 def inString(haystack,needle,startingpoint):
 	'''Finds the first occurrence of a search string in a larger string.'''
 	return f"inString({haystack},{needle},{startingpoint})"
+
+def Input(variable):
+    '''The Input command asks the user to enter a value for a variable (only one variable can be inputted at a time), waiting until the user enters a value and then presses ENTER. It does not display what variable the user is being asked for, but instead just displays a question mark (?).'''
+    return f"Input {variable}"
 
 def Int(value):
     '''Rounds a value down to the nearest integer.'''
@@ -1440,7 +1446,7 @@ def Output(row,column,expression):
 	return f"Output({row},{column},{expression})"
 
 def Pause():
-    ''''Returns a *Pause* command.'''
+    '''Returns a *Pause* command.'''
     return "Pause "
 
 def PlotBoxplot(plot_number,x_list,frequency_list):
