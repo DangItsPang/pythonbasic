@@ -1,9 +1,9 @@
-# Examples
+# Example projects
 
-[Example One](#example-one)
-[Example Two](#example-two)
-[Example Three](#example-three)
-[Example Four](#example-four)
+* [Example One](#example-one)
+* [Example Two](#example-two)
+* [Example Three](#example-three)
+* [Example Four](#example-four)
 
 ## Example One
 
@@ -21,7 +21,7 @@ def theorum():
     C = pb.power(A, 2) + pb.power(B, 2) 
     pb.Disp(math.sqrt(C))
 
-pb.setup(globals(), __file__, theorum)
+pb.translate(globals(), __file__, theorum)
 ```
 
 ### TI-Basic Translation
@@ -76,7 +76,7 @@ def main_menu_function(option):
 
 main_menu = pb.Menu("Main Menu", main_menu_function, [pb.MenuOption("Add"), pb.MenuOption("Subtract"), pb.MenuOption("Multiply"), pb.MenuOption("Divide"), pb.MenuOption("Quit")])
 
-pb.setup(globals(), __file__)
+pb.translate(globals(), __file__)
 ```
 
 ### TI-Basic Translation
@@ -143,7 +143,7 @@ def normal_probability():
     P = pb.normalcdf(L, U, M, S)
     pb.Disp(P)
 
-pb.setup(globals(), __file__, normal_probability)
+pb.translate(globals(), __file__, normal_probability)
 ```
 
 ### TI-Basic Translation
@@ -294,7 +294,7 @@ def get_factors():
         pb.ClrHome()
         pb.Stop()
 
-pb.setup(globals(), __file__, get_factors)
+pb.translate(globals(), __file__, get_factors)
 ```
 
 ### TI-Basic Translation
@@ -459,3 +459,9 @@ Pause
 ClrHome
 Stop
 ```
+
+### The Result
+
+| ![The first page of the factors for -300](/pythonbasic/photos/example_four(1).png) | ![The second page of the factors for -300](/pythonbasic/photos/example_four(2).png)
+|:--:|:--:|
+| *The first page of factors for -300* | *The second page of factors for -300* |

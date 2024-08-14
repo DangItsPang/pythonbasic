@@ -122,4 +122,4 @@ def get_factors():
         pb.ClrHome()
         pb.Stop()
 
-pb.setup(globals(), __file__, get_factors)
+pb.translate(globals(), __file__, get_factors)
