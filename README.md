@@ -24,7 +24,7 @@ def theorum():
     C = pb.power(A, 2) + pb.power(B, 2)
     pb.disp(math.sqrt(C))
 
-pb.setup(globals(), __file__, theorum)
+pb.translate(globals(), __file__, theorum)
 ```
 
 This may not seem like much of an advantage, until you consider the often confusing syntax of TI-Basic.
@@ -77,7 +77,7 @@ def main_menu_function(option):
 
 main_menu = pb.Menu("Main Menu", main_menu_function, [pb.MenuOption("Add"), pb.MenuOption("Subtract"), pb.MenuOption("Multiply"), pb.MenuOption("Divide"), pb.MenuOption("Quit")])
 
-pb.setup(globals(), __file__)
+pb.translate(globals(), __file__)
 ```
 
 ### And here's the translated code in TI-Basic:
@@ -148,7 +148,7 @@ def normal_probability():
     P = pb.normalcdf(L, U, M, S)
     pb.Disp(P)
 
-pb.setup(globals(), __file__, normal_probability)
+pb.translate(globals(), __file__, normal_probability)
 ```
 
 ### Translation in TI-Basic:
@@ -299,7 +299,7 @@ def get_factors():
         pb.ClrHome()
         pb.Stop()
 
-pb.setup(globals(), __file__, get_factors)
+pb.translate(globals(), __file__, get_factors)
 ```
 
 Say we run the program and specific -300 as our integer. Here's the list of factors returned to us.
