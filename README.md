@@ -1,7 +1,7 @@
 # Python Basic
 *An easier way to write TI-Basic!*
 
-[**Check out the website!**](https://dangitspang.github.io/pythonbasic/)
+[**Check out the website!**](https://owengold-1004.github.io/pythonbasic/)
 
 ### **Python Basic aims to simplify the process of writing code for Texas Instruments calculators.**
 
