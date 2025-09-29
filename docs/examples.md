@@ -462,6 +462,6 @@ Stop
 
 ### The Result
 
-| ![The first page of the factors for -300](/photos/example_four(1).png) | ![The second page of the factors for -300](/photos/example_four(2).png)
+| ![The first page of the factors for -300](../photos/example_four(1).png) | ![The second page of the factors for -300](../photos/example_four(2).png)
 |:--:|:--:|
 | *The first page of factors for -300* | *The second page of factors for -300* |
